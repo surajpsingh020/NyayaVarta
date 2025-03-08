@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Legal Aid Services</title>
+</head>
+<body>
+    <h1>Legal Aid Services</h1>
+    {% if services %}
+        <ul>
+        {% for service in services %}
+            <li>
+                <h2>{{ service.name }}</h2>
+                <p><strong>Contact:</strong> {{ service.contact_info }}</p>
+                <p><strong>Location:</strong> {{ service.location }}</p>
+                <p><strong>Language Supported:</strong> {{ service.language_supported }}</p>
+                <p>{{ service.details }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No legal aid services available at the moment.</p>
+    {% endif %}
+</body>
+</html>

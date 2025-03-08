@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NyayaVarta - Legal Articles</title>
+</head>
+<body>
+    <h1>Legal Articles</h1>
+    {% if articles %}
+        <ul>
+        {% for article in articles %}
+            <li>
+                <h2>{{ article.title }}</h2>
+                <p>{{ article.content|truncatewords:30 }}</p>
+                <small>Published on: {{ article.published_date }}</small>
+                <p><strong>Language:</strong> {{ article.language }}</p>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No articles available.</p>
+    {% endif %}
+</body>
+</html>

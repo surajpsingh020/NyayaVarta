@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lessons List - NyayaVarta</title>
+    {% load static %} <!-- Add this line at the top -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Legal Lessons</h1>
+    </header>
+    <main>
+        {% if lessons %}
+            <ul>
+                {% for lesson in lessons %}
+                    <li>
+                        <h2>{{ lesson.title }}</h2>
+                        <p>{{ lesson.content|truncatewords:30 }}</p>
+                        <p><strong>Language:</strong> {{ lesson.language }}</p>
+                        <p><small>Published on: {{ lesson.published_date }}</small></p>
+                        <div>
+                            <!-- Link to lesson details -->
+                            <a href="{% url 'learning:lesson_detail' lesson.id %}">View Details</a>
+                            <!-- Link to quiz for this lesson -->
+                            <a href="{% url 'quiz:quiz_list' lesson.id %}">Attempt Quiz</a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No lessons available at the moment.</p>
+        {% endif %}
+    </main>
+    <footer>
+        <p>&copy; 2025 NyayaVarta</p>
+    </footer>
+</body>
+</html>
