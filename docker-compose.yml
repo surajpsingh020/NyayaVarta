@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: nyayavarta_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: nyayavarta_db
+      MYSQL_USER: nyayavarta_user
+      MYSQL_PASSWORD: nyayavarta_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - nyayavarta_network
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: nyayavarta_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - nyayavarta_network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth_service
+      dockerfile: Dockerfile
+    container_name: nyayavarta_auth
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=mysql://nyayavarta_user:nyayavarta_pass@mysql:3306/nyayavarta_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-here
+      - AZURE_OPENAI_API_KEY=your-azure-openai-key
+      - BHASHINI_API_KEY=your-bhashini-key
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nyayavarta_network
+
+  # Content Service
+  content-service:
+    build:
+      context: ./backend/content_service
+      dockerfile: Dockerfile
+    container_name: nyayavarta_content
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=mysql://nyayavarta_user:nyayavarta_pass@mysql:3306/nyayavarta_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-here
+      - AZURE_OPENAI_API_KEY=your-azure-openai-key
+      - BHASHINI_API_KEY=your-bhashini-key
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nyayavarta_network
+
+  # Translation Service
+  translation-service:
+    build:
+      context: ./backend/translation_service
+      dockerfile: Dockerfile
+    container_name: nyayavarta_translation
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=mysql://nyayavarta_user:nyayavarta_pass@mysql:3306/nyayavarta_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-here
+      - BHASHINI_API_KEY=your-bhashini-key
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nyayavarta_network
+
+  # Legal Aid Service
+  legal-aid-service:
+    build:
+      context: ./backend/legal_aid_service
+      dockerfile: Dockerfile
+    container_name: nyayavarta_legal_aid
+    ports:
+      - "8004:8000"
+    environment:
+      - DATABASE_URL=mysql://nyayavarta_user:nyayavarta_pass@mysql:3306/nyayavarta_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-here
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nyayavarta_network
+
+  # Quiz Service
+  quiz-service:
+    build:
+      context: ./backend/quiz_service
+      dockerfile: Dockerfile
+    container_name: nyayavarta_quiz
+    ports:
+      - "8005:8000"
+    environment:
+      - DATABASE_URL=mysql://nyayavarta_user:nyayavarta_pass@mysql:3306/nyayavarta_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-here
+      - AZURE_OPENAI_API_KEY=your-azure-openai-key
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - nyayavarta_network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nyayavarta_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_AUTH_SERVICE_URL=http://localhost:8001
+      - REACT_APP_CONTENT_SERVICE_URL=http://localhost:8002
+      - REACT_APP_TRANSLATION_SERVICE_URL=http://localhost:8003
+      - REACT_APP_LEGAL_AID_SERVICE_URL=http://localhost:8004
+      - REACT_APP_QUIZ_SERVICE_URL=http://localhost:8005
+    depends_on:
+      - auth-service
+      - content-service
+      - translation-service
+      - legal-aid-service
+      - quiz-service
+    networks:
+      - nyayavarta_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nyayavarta_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - auth-service
+      - content-service
+      - translation-service
+      - legal-aid-service
+      - quiz-service
+    networks:
+      - nyayavarta_network
+
+volumes:
+  mysql_data:
+
+networks:
+  nyayavarta_network:
+    driver: bridge
