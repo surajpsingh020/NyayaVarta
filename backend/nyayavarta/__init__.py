@@ -1,0 +1,1 @@
+#NyayaVarta app package initializer
